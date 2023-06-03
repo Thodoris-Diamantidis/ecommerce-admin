@@ -8,5 +8,5 @@ input{
 }
 
 input:focus{
-  @apply border-blue-900
+  @apply border-blue-500
 }
