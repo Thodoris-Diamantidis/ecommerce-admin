@@ -1,8 +1,10 @@
 import Layout from "@/components/Layout";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 export default function Categories(){
+    const [editeCategory,setEditeCategory] = useState(null)
     const [name,setName] = useState('')
     const [parentCategory,setParentCategory] = useState('')
     const [categories,setCategories] = useState([])
@@ -18,15 +20,50 @@ export default function Categories(){
 
     async function saveCategory(ev){
         ev.preventDefault()
-        await axios.post('/api/categories', {name,parentCategory})
+        const data = {name,parentCategory: parentCategory || null}
+        if(editeCategory){
+            data._id = editeCategory._id
+            await axios.put('/api/categories', data)
+            setEditeCategory(null)
+        }else{
+            await axios.post('/api/categories', data)
+        }
         setName('')
+        setParentCategory('')
         fetchCategories()
+    }
+
+    function editCategory(category){
+        setEditeCategory(category)
+        setName(category.name)
+        setParentCategory(category.parent ? category.parent._id : '')
+    }
+
+    function alert(category){
+        Swal.fire({
+            title: 'Warning!',
+            text: `Do you want to delete ${category.name}`,
+            icon: 'warning',
+            showDenyButton: true,
+            confirmButtonText: 'Yes,Delete!',
+            confirmButtonColor: '#d55',
+            denyButtonText: 'Cancel',
+            denyButtonColor: '#696762',
+            reverseButtons: true,
+          }).then( async result => {
+            if (result.isConfirmed) {
+                const {_id} = category
+                await axios.delete('/api/categories?_id='+_id)
+                fetchCategories()
+                Swal.fire('Category deleted!', '', 'success')
+              }
+          })
     }
 
     return  (
         <Layout>
             <h1>Categories</h1>
-            <label>New Category name</label>
+            <label>{editeCategory ? `Edit category: ${editeCategory.name}` : 'Create new category'}</label>
             <form onSubmit={saveCategory} className="flex gap-1">
                 <input 
                 className="mb-0"
@@ -40,7 +77,7 @@ export default function Categories(){
                 value={parentCategory}>
                     <option value="">No parent category</option>
                     {categories.length > 0 && categories.map(category => (
-                        <option value={category._id}>{category.name}</option>
+                        <option key={category._id} value={category._id}>{category.name}</option>
                     ))}
                 </select>
                 <button type="submit" className="btn-primary py-1">Save</button>
@@ -55,12 +92,17 @@ export default function Categories(){
                 </thead>
                 <tbody>
                     {categories.length > 0 && categories.map(category => (
-                        <tr key={categories._id}>
+                        <tr key={category._id}>
                             <td>{category.name}</td>
-                            <td>{category?.parent?.name || "PARENT CATEGORY"}</td>
+                            <td>{category?.parent?.name}</td>
                             <td>
-                                <button className="btn-primary mr-1">Edit</button>
-                                <button className="btn-primary">Delete</button>
+                                <button 
+                                className="btn-primary mr-1" 
+                                onClick={() => editCategory(category)}
+                                >
+                                    Edit
+                                </button>
+                                <button onClick={() => alert(category)} className="btn-primary">Delete</button>
                             </td>
                         </tr>
                     ))}
