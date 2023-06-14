@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Spinner from "./Spinner";
 import { ReactSortable } from "react-sortablejs";
 
@@ -10,18 +10,27 @@ export default function ProductForm({
     description:existingDescription,
     price:existingPrice,
     images: existingImages,
+    category: existingCategory,
 }){
     const [title,setTitle] = useState(existingTitle || '')
     const [description,setDescription] = useState(existingDescription || '')
     const [price,setPrice] = useState(existingPrice || '')
+    const [category,setCategory] = useState(existingCategory || '') //this state is used for which element is selected from select(category)
     const [images,setImages] = useState(existingImages || [])
     const [goToProduct,setGoToProduct] = useState(false)
     const [isUploading,setIsUploading] = useState(false)
     const router = useRouter()
+    const [categories,setCategories] = useState([]) //this state is used to store api response
+
+    useEffect( () =>{
+        axios.get('/api/categories').then(result => {
+            setCategories(result.data)
+        })
+    },[])
 
     async function saveProduct(ev){
         ev.preventDefault();
-        const data = {title,description,price,images}
+        const data = {title,description,price,images,category}
         if(_id){
             await axios.put('/api/products', {...data,_id})
         }else{
@@ -62,7 +71,15 @@ export default function ProductForm({
                 placeholder="product name" 
                 value={title}
                 onChange={ev => setTitle(ev.target.value)}/> 
-
+            <label>Category</label>
+            <select 
+            value={category}
+            onChange={ev => setCategory(ev.target.value)}>
+                <option value="">Uncategorize</option>
+                {categories.length > 0 && categories.map(category => (
+                    <option value={category._id}>{category.name}</option>
+                ))}
+            </select>
             <label>
                 Photos
             </label>
