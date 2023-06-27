@@ -9,6 +9,7 @@ export default function Categories(){
     const [parentCategory,setParentCategory] = useState('')
     const [categories,setCategories] = useState([])
     const [properties,setProperties] = useState([])
+
     useEffect( () => {
         fetchCategories()
     }, [])
@@ -21,7 +22,14 @@ export default function Categories(){
 
     async function saveCategory(ev){
         ev.preventDefault()
-        const data = {name,parentCategory: parentCategory || null}
+        const data = {
+            name,
+            parentCategory: parentCategory || null ,
+            properties: properties.map(p => ({
+                name:p.name,
+                values: String(p.values).split(','),
+            })),
+        }
         if(editeCategory){
             data._id = editeCategory._id
             await axios.put('/api/categories', data)
@@ -31,6 +39,7 @@ export default function Categories(){
         }
         setName('')
         setParentCategory('')
+        setProperties([])
         fetchCategories()
     }
 
@@ -38,6 +47,8 @@ export default function Categories(){
         setEditeCategory(category)
         setName(category.name)
         setParentCategory(category.parent ? category.parent._id : '')
+        setProperties(category.properties)
+        console.log(category.properties)
     }
 
     function alert(category){
@@ -63,7 +74,7 @@ export default function Categories(){
 
     function addProperty(){
         setProperties(prev => {
-            return [...prev, {name:'', value:''}]
+            return [...prev, {name:'', values:''}]
         })
     }
 
@@ -123,7 +134,7 @@ export default function Categories(){
                         <div className="flex gap-1 mb-2">
                             <input type="text"
                                    className="mb-0"
-                                   value={property.names}
+                                   value={property.name}
                                    onChange={ev => handlePropertyNameChange(index, property, ev.target.value)}
                                    placeholder="Property name (example: Color)"/>
                             <input type="text"
@@ -139,14 +150,22 @@ export default function Categories(){
                     ))}
                 </div>
                 <div className="flex gap-1">
-                    {editeCategory && (
-                        <button className="btn-default">Cancel</button>
-                    )}
                     <button 
                         type="submit" 
                         className="btn-primary py-1">
                         Save
                     </button>
+                    {editeCategory && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setEditeCategory(null)
+                                setName('')
+                                setParentCategory('')
+                                setProperties([])
+                            }} 
+                            className="btn-default">Cancel</button>
+                    )}
                 </div>
             </form>
             {!editeCategory && (
@@ -167,10 +186,13 @@ export default function Categories(){
                                 <button 
                                 className="btn-primary mr-1" 
                                 onClick={() => editCategory(category)}
-                                >
-                                    Edit
+                                >Edit
                                 </button>
-                                <button onClick={() => alert(category)} className="btn-primary">Delete</button>
+                                <button 
+                                    onClick={() => alert(category)}
+                                    className="btn-primary">
+                                    Delete
+                                </button>
                             </td>
                         </tr>
                     ))}
