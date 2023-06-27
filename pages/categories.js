@@ -67,8 +67,28 @@ export default function Categories(){
         })
     }
 
+    function handlePropertyValuesChange(index,property,newValues){
+        setProperties(prev => {
+            const properties = [...prev]
+            properties[index].values = newValues
+            return properties
+        })
+    }
+
     function handlePropertyNameChange(index,property,newName){
-        console.log({index,property,newName})
+        setProperties(prev => {
+            const properties = [...prev]
+            properties[index].name = newName
+            return properties
+        })
+    }
+
+    function removeProperty(indexToRemove){
+        setProperties( prev => {
+            return [...prev].filter((p,pIndex) => {
+                return pIndex !== indexToRemove
+            })
+        })
     }
 
     return  (
@@ -96,28 +116,41 @@ export default function Categories(){
                     <button
                         onClick={addProperty} 
                         type="button" 
-                        className= "btn-default text-sm">
+                        className= "btn-default text-sm mb-2">
                         Add new property
                     </button>
                     {properties.length > 0 && properties.map((property,index) => (
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 mb-2">
                             <input type="text"
+                                   className="mb-0"
                                    value={property.names}
                                    onChange={ev => handlePropertyNameChange(index, property, ev.target.value)}
                                    placeholder="Property name (example: Color)"/>
                             <input type="text"
+                                   className="mb-0"
+                                   onChange={ev => handlePropertyValuesChange(index, property, ev.target.value)}
                                    value={property.values}
                                    placeholder="Value...comma separated"/>
+                            <button 
+                                className="btn-default"
+                                type="button"
+                                onClick={() => removeProperty(index)}>Remove</button>
                         </div>
                     ))}
                 </div>
-                <button 
-                    type="submit" 
-                    className="btn-primary py-1">
-                    Save
-                </button>
+                <div className="flex gap-1">
+                    {editeCategory && (
+                        <button className="btn-default">Cancel</button>
+                    )}
+                    <button 
+                        type="submit" 
+                        className="btn-primary py-1">
+                        Save
+                    </button>
+                </div>
             </form>
-            <table className="basic mt-4">
+            {!editeCategory && (
+                <table className="basic mt-4">
                 <thead>
                     <tr>
                         <td>Category name</td>
@@ -143,6 +176,7 @@ export default function Categories(){
                     ))}
                 </tbody>
             </table>
+            )}
         </Layout>
     )
 }
