@@ -8,6 +8,7 @@ export default function Categories(){
     const [name,setName] = useState('')
     const [parentCategory,setParentCategory] = useState('')
     const [categories,setCategories] = useState([])
+    const [properties,setProperties] = useState([])
     useEffect( () => {
         fetchCategories()
     }, [])
@@ -60,27 +61,61 @@ export default function Categories(){
           })
     }
 
+    function addProperty(){
+        setProperties(prev => {
+            return [...prev, {name:'', value:''}]
+        })
+    }
+
+    function handlePropertyNameChange(index,property,newName){
+        console.log({index,property,newName})
+    }
+
     return  (
         <Layout>
             <h1>Categories</h1>
             <label>{editeCategory ? `Edit category: ${editeCategory.name}` : 'Create new category'}</label>
-            <form onSubmit={saveCategory} className="flex gap-1">
-                <input 
-                className="mb-0"
-                type="text"
-                placeholder="Category name"
-                onChange={ev => setName(ev.target.value)}
-                value={name}/>
-                <select 
-                className="mb-0"
-                onChange={ev => setParentCategory(ev.target.value)} 
-                value={parentCategory}>
-                    <option value="">No parent category</option>
-                    {categories.length > 0 && categories.map(category => (
-                        <option key={category._id} value={category._id}>{category.name}</option>
+            <form onSubmit={saveCategory}>
+                <div className="flex gap-1">
+                    <input 
+                    type="text"
+                    placeholder="Category name"
+                    onChange={ev => setName(ev.target.value)}
+                    value={name}/>
+                    <select 
+                    onChange={ev => setParentCategory(ev.target.value)} 
+                    value={parentCategory}>
+                        <option value="">No parent category</option>
+                        {categories.length > 0 && categories.map(category => (
+                            <option key={category._id} value={category._id}>{category.name}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="mb-2">
+                    <label className="block">Properties</label>
+                    <button
+                        onClick={addProperty} 
+                        type="button" 
+                        className= "btn-default text-sm">
+                        Add new property
+                    </button>
+                    {properties.length > 0 && properties.map((property,index) => (
+                        <div className="flex gap-1">
+                            <input type="text"
+                                   value={property.names}
+                                   onChange={ev => handlePropertyNameChange(index, property, ev.target.value)}
+                                   placeholder="Property name (example: Color)"/>
+                            <input type="text"
+                                   value={property.values}
+                                   placeholder="Value...comma separated"/>
+                        </div>
                     ))}
-                </select>
-                <button type="submit" className="btn-primary py-1">Save</button>
+                </div>
+                <button 
+                    type="submit" 
+                    className="btn-primary py-1">
+                    Save
+                </button>
             </form>
             <table className="basic mt-4">
                 <thead>
